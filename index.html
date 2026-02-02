@@ -1,0 +1,252 @@
+ <!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <title>ANNABYTE - V3.01</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Estilos originais mantidos e otimizados */
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; padding: 0; font-family: 'Verdana', sans-serif; height: 100vh; width: 100vw; overflow: hidden; background-color: #f0f0f0; display: flex; flex-direction: row; }
+        
+        @media (max-width: 800px) {
+            body { flex-direction: column; overflow-y: auto; }
+            #side-watermark { width: 100% !important; height: 30vh !important; -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%) !important; }
+            #game-area { width: 100% !important; height: 70vh !important; padding: 10px; }
+            .painel { width: 95% !important; padding: 15px !important; margin-top: -20px; }
+            #grid { transform: scale(0.8); margin-top: -30px; touch-action: manipulation; }
+        }
+
+        #side-watermark { position: relative; width: 45%; height: 100%; background-image: url('annasarah.jpeg?v=3.01'); background-size: cover; background-position: center top; filter: grayscale(100%) contrast(1.1); opacity: 0.8; -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%); z-index: 1; }
+        #game-area { width: 55%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; }
+        .painel { width: 380px; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; }
+        .versao-tag { background: #ff9800; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 12px; margin-bottom: 5px; display: inline-block; }
+        #last-update { font-size: 10px; color: #666; margin-bottom: 15px; font-weight: bold; }
+        h1 { color: #e65100; margin: 0 0 15px 0; font-size: 32px; text-transform: uppercase; font-weight: 900; }
+        input[type=text], select { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #ccc; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
+        .botoes-container { display: flex; gap: 20px; margin: 15px 0; justify-content: center; }
+        .btn-bola { width: 80px; height: 80px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 14px; }
+        .btn-jogar { background: #2ecc71; border: 4px solid white; box-shadow: 0 4px 0 #27ae60; }
+        .btn-sair { background: #ff7675; border: 4px solid white; box-shadow: 0 4px 0 #d63031; }
+        #ranking-area { width: 100%; height: 100px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; text-align: left; padding: 10px; margin-bottom: 10px; }
+        .ranking-item { border-bottom: 1px solid #eee; padding: 5px 0; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
+        
+        /* Estilos do Jogo */
+        #tela-jogo { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        #grid { display: grid; gap: 8px; padding: 10px; background: white; border-radius: 15px; border: 1px solid #ccc; }
+         /* Cartas com visual Profissional e Moderno */
+        .card { 
+            width: 80px; 
+            height: 80px; 
+            background: linear-gradient(135deg, #ff9800, #e65100); 
+            border-radius: 12px; 
+            cursor: pointer; 
+            position: relative; 
+            box-shadow: 0 6px 0 #bf4300, 0 8px 15px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+
+        .card:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #bf4300, 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .frente { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            background: white; 
+            border-radius: 12px; 
+            display: none; 
+            border: 4px solid #ff9800; 
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        .frente img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+        }
+
+        .card.virada .frente, .card.certa .frente { display: block; }
+        #sound-panel { position: fixed; top: 10px; right: 10px; z-index: 200; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 30px; display: flex; align-items: center; border: 1px solid #ccc; }
+    </style>
+</head>
+<body onclick="interacaoInicial()">
+
+    <audio id="musica-menu" loop><source src="https://www.myinstants.com/media/sounds/naruto-theme-song.mp3" type="audio/mpeg"></audio>
+    <audio id="musica-jogo" loop><source src="https://ia800605.us.archive.org/8/items/NarutoOST123/Naruto%20OST%202%20-%2007%20-%20Afternoon%20of%20Konoha.mp3" type="audio/mpeg"></audio>
+    <audio id="som-ding" src="https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3"></audio>
+    <audio id="som-win" src="https://www.myinstants.com/media/sounds/victory-ff-fanfare.mp3"></audio>
+
+    <div id="side-watermark"></div>
+
+    <div id="sound-panel">
+        <button id="btn-mute" onclick="toggleMute()" style="border:none; background:none; cursor:pointer;">🔊</button>
+        <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="0.5" oninput="mudarVolume()" style="width:60px;">
+    </div>
+
+    <div id="game-area">
+        <div id="tela-menu">
+            <div class="painel">
+                <div class="versao-tag">ANNABYTE v3.02</div>
+                <div id="last-update"></div>
+                <h1>MENU</h1>
+                <input id="jogador" type="text" placeholder="Seu Nome">
+                <select id="tema" onchange="atualizarRank()">
+                    <option value="naruto">🍥 TURMA DO NARUTO</option>
+                    <option value="anime">🦊 ANIMES</option>
+                    <option value="futebol">⚽ FUTEBOL</option>
+                    <option value="carros">🏎️ CARROS</option>
+                    <option value="frutas">🍎 FRUTAS</option>
+                    <option value="bandeiras">🏳️ BANDEIRAS</option>
+                    <option value="animais">🐶 ANIMAIS</option>
+                </select>
+                <select id="nivel" onchange="atualizarRank()">
+                    <option value="8">FÁCIL (4x4)</option>
+                    <option value="10">MÉDIO (4x5)</option>
+                    <option value="12">DIFÍCIL (4x6)</option>
+                </select>
+                <div class="botoes-container">
+                    <button class="btn-bola btn-jogar" onclick="iniciar()">JOGAR</button>
+                    <button class="btn-bola btn-sair" onclick="fecharApp()">SAIR</button>
+                </div>
+                <div id="ranking-area"></div>
+            </div>
+        </div>
+
+        <div id="tela-jogo">
+            <div style="width: 350px; display:flex; justify-content: space-between; margin-bottom: 10px;">
+                <span id="nome-hud" style="font-weight:bold">ANNA</span>
+                <span id="tempo" style="font-weight:bold; color:#e65100;">0.0s</span>
+                <button onclick="voltarMenu()" style="border:none; background:#d63031; color:white; border-radius:5px; padding:5px 10px;">VOLTAR</button>
+            </div>
+            <div id="grid"></div>
+        </div>
+    </div>
+
+<script>
+    // --- LÓGICA DE INICIALIZAÇÃO ---
+    window.onload = () => {
+        atualizarRank();
+        const agora = new Date();
+        document.getElementById('last-update').innerText = `ATUALIZADO: ${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
+    };
+
+    let canalMenu = document.getElementById('musica-menu'), canalJogo = document.getElementById('musica-jogo');
+    let isMuted = false, interagiu = false, viradas=[], travado=false, acertos=0, timerLoop, segundos=0;
+
+    const DB = {
+        naruto: ["https://tse2.mm.bing.net/th?q=Naruto+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Sasuke+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Sakura+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Kakashi+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Hinata+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Gaara+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Itachi+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Pain+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Konan+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Jiraiya+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Tsunade+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Boruto+Chibi+Sticker"],
+        anime: ["https://tse2.mm.bing.net/th?q=Goku+Chibi","https://tse2.mm.bing.net/th?q=Luffy+Chibi","https://tse2.mm.bing.net/th?q=Pikachu+Chibi","https://tse2.mm.bing.net/th?q=Sailor+Moon+Chibi","https://tse2.mm.bing.net/th?q=Tanjiro+Chibi","https://tse2.mm.bing.net/th?q=Nezuko+Chibi","https://tse2.mm.bing.net/th?q=Saitama+Chibi","https://tse2.mm.bing.net/th?q=Chopper+Chibi","https://tse2.mm.bing.net/th?q=Zoro+Chibi","https://tse2.mm.bing.net/th?q=Vegeta+Chibi","https://tse2.mm.bing.net/th?q=Deku+Chibi","https://tse2.mm.bing.net/th?q=Gon+Chibi"],
+        futebol: ["https://tse2.mm.bing.net/th?q=Flamengo+Logo+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Ball+Cartoon","https://tse2.mm.bing.net/th?q=Zico+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Boots+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Goal+Cartoon","https://tse2.mm.bing.net/th?q=Referee+Cartoon","https://tse2.mm.bing.net/th?q=Red+Card+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Trophy+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Jersey+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Gloves+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Flag+Cartoon","https://tse2.mm.bing.net/th?q=Maracana+Cartoon"],
+        carros: ["https://tse2.mm.bing.net/th?q=Astra+GSI+Cartoon","https://tse2.mm.bing.net/th?q=Police+Car+Cartoon","https://tse2.mm.bing.net/th?q=Ferrari+Cartoon","https://tse2.mm.bing.net/th?q=Monster+Truck+Cartoon","https://tse2.mm.bing.net/th?q=Race+Car+Cartoon","https://tse2.mm.bing.net/th?q=Taxi+Cartoon","https://tse2.mm.bing.net/th?q=Fire+Truck+Cartoon","https://tse2.mm.bing.net/th?q=Ambulance+Cartoon","https://tse2.mm.bing.net/th?q=Jeep+Cartoon","https://tse2.mm.bing.net/th?q=Formula+1+Cartoon","https://tse2.mm.bing.net/th?q=School+Bus+Cartoon","https://tse2.mm.bing.net/th?q=Truck+Cartoon"],
+        frutas: ["https://tse2.mm.bing.net/th?q=Apple+Cartoon","https://tse2.mm.bing.net/th?q=Banana+Cartoon","https://tse2.mm.bing.net/th?q=Strawberry+Cartoon","https://tse2.mm.bing.net/th?q=Grapes+Cartoon","https://tse2.mm.bing.net/th?q=Orange+Cartoon","https://tse2.mm.bing.net/th?q=Watermelon+Cartoon","https://tse2.mm.bing.net/th?q=Pineapple+Cartoon","https://tse2.mm.bing.net/th?q=Mango+Cartoon","https://tse2.mm.bing.net/th?q=Cherry+Cartoon","https://tse2.mm.bing.net/th?q=Kiwi+Cartoon","https://tse2.mm.bing.net/th?q=Pear+Cartoon","https://tse2.mm.bing.net/th?q=Lemon+Cartoon"],
+        bandeiras: ["https://flagcdn.com/w160/br.png", "https://flagcdn.com/w160/us.png", "https://flagcdn.com/w160/jp.png", "https://flagcdn.com/w160/de.png", "https://flagcdn.com/w160/fr.png", "https://flagcdn.com/w160/it.png", "https://flagcdn.com/w160/ca.png", "https://flagcdn.com/w160/ar.png", "https://flagcdn.com/w160/kr.png", "https://flagcdn.com/w160/es.png", "https://flagcdn.com/w160/pt.png", "https://flagcdn.com/w160/mx.png"],
+        animais: ["https://tse2.mm.bing.net/th?q=Puppy+Cartoon","https://tse2.mm.bing.net/th?q=Kitten+Cartoon","https://tse2.mm.bing.net/th?q=Panda+Cartoon","https://tse2.mm.bing.net/th?q=Lion+Cartoon","https://tse2.mm.bing.net/th?q=Elephant+Cartoon","https://tse2.mm.bing.net/th?q=Fox+Cartoon","https://tse2.mm.bing.net/th?q=Monkey+Cartoon","https://tse2.mm.bing.net/th?q=Bunny+Cartoon","https://tse2.mm.bing.net/th?q=Giraffe+Cartoon","https://tse2.mm.bing.net/th?q=Penguin+Cartoon","https://tse2.mm.bing.net/th?q=Zebra+Cartoon","https://tse2.mm.bing.net/th?q=Owl+Cartoon"]
+    };
+
+    function fisherYates(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function interacaoInicial() { if (!interagiu) { interagiu = true; if(!isMuted) canalMenu.play().catch(e=>{}); } }
+    function toggleMute() { isMuted = !isMuted; document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊"; if (isMuted) { canalMenu.pause(); canalJogo.pause(); } else { (document.getElementById('tela-menu').style.display !== 'none' ? canalMenu : canalJogo).play().catch(e=>{}); } }
+    function mudarVolume() { canalMenu.volume = canalJogo.volume = document.getElementById('vol-slider').value; }
+
+    function iniciar() {
+        let nome = document.getElementById('jogador').value;
+        if(!nome) return alert("Digite seu nome!");
+        interacaoInicial();
+        let tema = document.getElementById('tema').value, qtdPares = parseInt(document.getElementById('nivel').value);
+        document.getElementById('nome-hud').innerText = nome.toUpperCase();
+        document.getElementById('tela-menu').style.display = 'none';
+        document.getElementById('tela-jogo').style.display = 'flex';
+        if(!isMuted) { canalMenu.pause(); canalMenu.currentTime = 0; canalJogo.play().catch(e=>{}); }
+
+        let selecionadas = fisherYates([...DB[tema]]).slice(0, qtdPares);
+        let deck = [];
+        selecionadas.forEach((url, i) => { deck.push({ id: i, img: url }); deck.push({ id: i, img: url }); });
+        fisherYates(deck);
+
+        const grid = document.getElementById('grid');
+        grid.style.gridTemplateColumns = `repeat(4, 80px)`; 
+        grid.innerHTML = "";
+        deck.forEach((item) => {
+            let div = document.createElement('div');
+            div.className = 'card';
+            div.dataset.id = item.id;
+            div.innerHTML = `<div class="frente"><img src="${item.img}${item.img.includes('flagcdn') ? '' : '&w=100&h=100&c=7'}"></div>`;
+            div.onclick = () => clicar(div, qtdPares);
+            grid.appendChild(div);
+        });
+
+        segundos = 0; acertos = 0; viradas = []; travado = false;
+        clearInterval(timerLoop);
+        timerLoop = setInterval(() => { segundos += 0.1; document.getElementById('tempo').innerText = segundos.toFixed(1) + 's'; }, 100);
+    }
+
+    function clicar(card, total) {
+        if(travado || card.classList.contains('virada') || card.classList.contains('certa')) return;
+        card.classList.add('virada');
+        viradas.push(card);
+        if(viradas.length === 2) {
+            travado = true;
+            if(viradas[0].dataset.id === viradas[1].dataset.id) {
+                if(!isMuted) { let s = document.getElementById('som-ding'); s.currentTime = 0; s.play(); }
+                viradas.forEach(c => c.classList.add('certa'));
+                viradas = []; travado = false;
+                acertos++;
+                if(acertos === total) vitoria();
+            } else {
+                setTimeout(() => { viradas.forEach(c => c.classList.remove('virada')); viradas = []; travado = false; }, 800);
+            }
+        }
+    }
+
+    function vitoria() {
+        clearInterval(timerLoop);
+        if(!isMuted) { let w = document.getElementById('som-win'); w.currentTime = 0; w.play(); }
+        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+        let nome = document.getElementById('jogador').value, t = document.getElementById('tema'), n = document.getElementById('nivel');
+        let key = 'anna_' + t.options[t.selectedIndex].text.replace(/\s/g, '') + '_' + n.options[n.selectedIndex].text.replace(/\s/g, '');
+        salvar(key, nome, segundos.toFixed(1));
+        setTimeout(() => { alert(`PARABÉNS ${nome}!\nTempo: ${segundos.toFixed(1)}s`); voltarMenu(); }, 500);
+    }
+
+    function voltarMenu() {
+        clearInterval(timerLoop);
+        document.getElementById('tela-jogo').style.display = 'none';
+        document.getElementById('tela-menu').style.display = 'flex';
+        if(!isMuted) { canalJogo.pause(); canalMenu.play(); }
+        atualizarRank();
+    }
+
+    function salvar(key, n, t) {
+        let lista = JSON.parse(localStorage.getItem(key)) || [];
+        lista.push({n, t: parseFloat(t)});
+        lista.sort((a,b)=>a.t - b.t);
+        localStorage.setItem(key, JSON.stringify(lista.slice(0,10)));
+    }
+
+    function atualizarRank() {
+        let t = document.getElementById('tema'), n = document.getElementById('nivel');
+        if(!t || !n) return;
+        let key = 'anna_' + t.options[t.selectedIndex].text.replace(/\s/g, '') + '_' + n.options[n.selectedIndex].text.replace(/\s/g, '');
+        let lista = JSON.parse(localStorage.getItem(key)) || [];
+        let html = lista.length === 0 ? `<div style='color:#999; text-align:center; padding:10px;'>Sem recordes ainda!</div>` : "";
+        lista.forEach((r,i) => { html += `<div class="ranking-item"><span>${i+1}. ${r.n}</span><span>${r.t}s</span></div>`; });
+        document.getElementById('ranking-area').innerHTML = html;
+    }
+
+    function fecharApp() { if(confirm("Sair?")) window.close(); }
+</script> 
+</body>
+</html>
