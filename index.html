@@ -80,9 +80,14 @@
 </head>
 <body onclick="interacaoInicial()">
 
-    <audio id="musica-principal" loop preload="auto">
-        <source src="https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Afternoon+of+Konoha&filename=24/244331-561b368c-4903-4906-8d5b-16d7730e200c.mp3" type="audio/mpeg">
+    <audio id="musica-menu" loop preload="auto">
+        <source src="abertura.mp3" type="audio/mpeg">
     </audio>
+
+    <audio id="musica-jogo" loop preload="auto">
+        <source src="flauta.mp3" type="audio/mpeg">
+    </audio>
+
     <audio id="som-ding" src="https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3"></audio>
     <audio id="som-win" src="https://www.myinstants.com/media/sounds/victory-ff-fanfare.mp3"></audio>
 
@@ -130,8 +135,16 @@
     </div>
 
 <script>
-    let som = document.getElementById('musica-principal'), interagiu = false, isMuted = false;
-    let viradas = [], travado = false, acertos = 0, timerLoop, segundos = 0;
+    let canalMenu = document.getElementById('musica-menu'); 
+    let canalJogo = document.getElementById('musica-jogo');
+
+    let isMuted = false;
+    let interagiu = false;
+    let viradas = [];
+    let travado = false;
+    let acertos = 0;
+    let timerLoop;
+    let segundos = 0;
 
     const DB = {
         naruto: ["https://tse2.mm.bing.net/th?q=Naruto+Chibi","https://tse2.mm.bing.net/th?q=Sasuke+Chibi","https://tse2.mm.bing.net/th?q=Sakura+Chibi","https://tse2.mm.bing.net/th?q=Kakashi+Chibi","https://tse2.mm.bing.net/th?q=Hinata+Chibi","https://tse2.mm.bing.net/th?q=Gaara+Chibi","https://tse2.mm.bing.net/th?q=Itachi+Chibi","https://tse2.mm.bing.net/th?q=Jiraiya+Chibi","https://tse2.mm.bing.net/th?q=Tsunade+Chibi","https://tse2.mm.bing.net/th?q=Obito+Chibi","https://tse2.mm.bing.net/th?q=Madara+Chibi","https://tse2.mm.bing.net/th?q=Kurama+Chibi","https://tse2.mm.bing.net/th?q=Minato+Chibi","https://tse2.mm.bing.net/th?q=RockLee+Chibi","https://tse2.mm.bing.net/th?q=Shikamaru+Chibi","https://tse2.mm.bing.net/th?q=Pain+Chibi","https://tse2.mm.bing.net/th?q=Konan+Chibi","https://tse2.mm.bing.net/th?q=Deidara+Chibi","https://tse2.mm.bing.net/th?q=Hidan+Chibi","https://tse2.mm.bing.net/th?q=Kisame+Chibi","https://tse2.mm.bing.net/th?q=Orochimaru+Chibi","https://tse2.mm.bing.net/th?q=Boruto+Chibi","https://tse2.mm.bing.net/th?q=Sarada+Chibi","https://tse2.mm.bing.net/th?q=Mitsuki+Chibi"],
@@ -148,11 +161,20 @@
     }
 
     function interacaoInicial() { 
-        if (!interagiu) { 
-            interagiu = true; 
-            if(!isMuted) som.play().then(() => { som.pause(); som.currentTime = 0; }).catch(() => {});
+    if (!interagiu) { 
+        interagiu = true; 
+        if(!isMuted) {
+            // Liga o tema do Naruto imediatamente
+            canalMenu.play().catch(e => console.log("Aguardando interação"));
+            
+            // "Engatilha" a flauta em silêncio para o navegador permitir depois
+            canalJogo.play().then(() => {
+                canalJogo.pause();
+                canalJogo.currentTime = 0;
+            }).catch(e => {});
         } 
-    }
+    } 
+} 
 
     function toggleMute() { 
         isMuted = !isMuted; 
@@ -162,48 +184,62 @@
     
     function mudarVolume() { som.volume = document.getElementById('vol-slider').value; }
 
-    function iniciar() {
-        let nome = document.getElementById('jogador').value;
-        if(!nome) return alert("Digite seu nome!");
+    // 2. FUNÇÃO INICIAR (Quando clica no botão JOGAR)
+function iniciar() {
+    let nome = document.getElementById('jogador').value;
+    if(!nome) return alert("Digite seu nome!");
 
-        if(!isMuted) som.play().catch(() => {});
-
-        let tema = document.getElementById('tema').value;
-        let nivelSel = document.getElementById('nivel').value;
-        
-        let partes = nivelSel.split('x');
-        let linhas = parseInt(partes[0]);
-        let colunas = parseInt(partes[1]);
-        let qtdTotal = linhas * colunas;
-        let qtdPares = qtdTotal / 2;
-        
-        document.getElementById('nome-hud').innerText = nome.toUpperCase();
-        document.getElementById('tela-menu').style.display = 'none';
-        document.getElementById('tela-jogo').style.display = 'flex';
-
-        let selecionadas = DB[tema].slice(0, qtdPares);
-        let deck = fisherYates([...selecionadas, ...selecionadas]);
-
-        const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(${colunas}, 65px)`;
-        grid.innerHTML = "";
-        
-        deck.forEach((img) => {
-            let div = document.createElement('div');
-            div.className = 'card';
-            div.dataset.id = img;
-            div.innerHTML = `<div class="frente"><img src="${img}"></div>`;
-            div.onclick = () => clicar(div, qtdPares);
-            grid.appendChild(div);
-        });
-
-        segundos = 0; acertos = 0; viradas = []; travado = false;
-        clearInterval(timerLoop);
-        timerLoop = setInterval(() => { 
-            segundos += 0.1; 
-            document.getElementById('tempo').innerText = segundos.toFixed(1) + 's'; 
-        }, 100);
+    // TROCA DE ÁUDIO FORÇADA
+    if(!isMuted) {
+        canalMenu.pause(); 
+        canalJogo.currentTime = 0;
+        // Como o arquivo é local, o play() é quase instantâneo
+        canalJogo.play().catch(e => console.log("Erro ao tocar arquivo local"));
     }
+        
+        // Espera um milésimo de segundo para o 'load' processar
+        setTimeout(() => {
+            canalJogo.play().catch(e => {console.log("Erro ao reconhecer o arquivo:", e);
+            });
+        }, 150);
+    
+
+    let tema = document.getElementById('tema').value;
+    let nivelSel = document.getElementById('nivel').value;
+    
+    let partes = nivelSel.split('x');
+    let linhas = parseInt(partes[0]);
+    let colunas = parseInt(partes[1]);
+    let qtdTotal = linhas * colunas;
+    let qtdPares = qtdTotal / 2;
+    
+    document.getElementById('nome-hud').innerText = nome.toUpperCase();
+    document.getElementById('tela-menu').style.display = 'none';
+    document.getElementById('tela-jogo').style.display = 'flex';
+
+    let selecionadas = DB[tema].slice(0, qtdPares);
+    let deck = fisherYates([...selecionadas, ...selecionadas]);
+
+    const grid = document.getElementById('grid');
+    grid.style.gridTemplateColumns = `repeat(${colunas}, 65px)`;
+    grid.innerHTML = "";
+    
+    deck.forEach((img) => {
+        let div = document.createElement('div');
+        div.className = 'card';
+        div.dataset.id = img;
+        div.innerHTML = `<div class="frente"><img src="${img}"></div>`;
+        div.onclick = () => clicar(div, qtdPares);
+        grid.appendChild(div);
+    });
+
+    segundos = 0; acertos = 0; viradas = []; travado = false;
+    clearInterval(timerLoop);
+    timerLoop = setInterval(() => { 
+        segundos += 0.1; 
+        document.getElementById('tempo').innerText = segundos.toFixed(1) + 's'; 
+    }, 100);
+}
 
     function clicar(card, totalPares) {
         if(travado || card.classList.contains('virada') || card.classList.contains('certa')) return;
@@ -237,13 +273,18 @@
         setTimeout(() => { alert(`BOA, ${nome.toUpperCase()}! Tempo: ${tempoFinal}s`); voltarMenu(); }, 500);
     }
 
+    // 3. FUNÇÃO VOLTAR (Quando sai do jogo para o menu)
     function voltarMenu() {
         clearInterval(timerLoop);
         document.getElementById('tela-jogo').style.display = 'none';
         document.getElementById('tela-menu').style.display = 'flex';
+        
+        if(!isMuted) {
+            canalJogo.pause(); // Para Flauta
+            canalMenu.play().catch(e => {}); // Volta Naruto
+        }
         atualizarRank();
     }
-
     function salvar(n, t) {
         let key = 'anna_rank';
         let lista = JSON.parse(localStorage.getItem(key)) || [];
