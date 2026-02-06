@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>ANNABYTE - V3.09</title>
+    <title>ANNABYTE - V3.13</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
 <style>
     * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
@@ -13,7 +13,6 @@
         body { flex-direction: column; overflow-y: auto; }
         #side-watermark { width: 100% !important; height: 25vh !important; }
         #game-area { width: 100% !important; height: 75vh !important; padding: 5px; }
-        /* No mobile, mantemos a largura relativa para não estourar */
         .painel, #tabuleiro-container { width: 98% !important; min-width: auto !important; padding: 15px !important; }
         #grid { transform: scale(0.65); transform-origin: top center; }
     }
@@ -27,36 +26,24 @@
         z-index: 1; 
     }
     
-    /* Centraliza a área de conteúdo */
     #game-area { width: 60%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; }
     
-    /* MODIFICAÇÃO: A Tela de Apresentação agora é fixa em 380px */
-    .painel { 
-        width: 380px; padding: 25px; background: white; border-radius: 20px; 
-        box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; 
-        position: relative;
-    }
+    .painel, #tabuleiro-container { width: fit-content; min-width: 320px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; position: relative; }
 
-    /* MODIFICAÇÃO: O Tabuleiro de Jogo cresce conforme o grid (fit-content) */
-    #tabuleiro-container { 
-        width: fit-content; min-width: 380px; padding: 25px; background: white; border-radius: 20px; 
-        box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; 
-        position: relative;
-    }
+    /* Cabeçalho Lúdico no Jogo */
+    .header-jogo { margin-bottom: 15px; border-bottom: 2px dashed #ffcc80; padding-bottom: 10px; }
+    .header-jogo h2 { color: #ff9800; margin: 0; font-size: 22px; font-weight: 900; }
+    .header-jogo p { color: #e65100; margin: 0; font-size: 14px; font-weight: bold; letter-spacing: 2px; }
 
-    #hud-box {
-        display: flex; justify-content: space-between; align-items: center;
-        background: #fff5e6; padding: 8px 15px; border-radius: 12px;
-        margin-bottom: 15px; border: 2px solid #ffcc80;
-    }
+    #hud-box { display: flex; justify-content: space-between; align-items: center; background: #fff5e6; padding: 8px 15px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #ffcc80; }
 
     h1 { color: #e65100; margin: 0 0 10px 0; font-size: 28px; text-transform: uppercase; font-weight: 900; }
     input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px solid #ccc; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
     
-    .botoes-container { display: flex; gap: 15px; margin: 10px 0; justify-content: center; }
-    .btn-bola { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+    .btn-bola { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
     .btn-jogar { background: #2ecc71; border: 3px solid white; }
     .btn-sair { background: #ff7675; border: 3px solid white; }
+    .btn-bola:active { transform: scale(0.95); }
 
     #ranking-area { width: 100%; height: 120px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; text-align: left; padding: 8px; }
     
@@ -64,30 +51,24 @@
     #grid { display: grid; gap: 6px; justify-content: center; margin: 0 auto; }
     
     .card { width: 65px; height: 65px; background: linear-gradient(135deg, #ff9800, #f57c00); border-radius: 6px; cursor: pointer; position: relative; box-shadow: 0 4px 0 #8a3100; transition: transform 0.1s; }
-    .card:active { transform: translateY(2px); box-shadow: 0 1px 0 #8a3100; }
+    
+    /* Animação de Erro (Shake) */
+    @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-4px);} 75% {transform: translateX(4px);} }
+    .erro { animation: shake 0.3s; border: 3px solid #ff0000 !important; }
+
     .frente { position: absolute; width: 100%; height: 100%; background: white; border-radius: 6px; display: none; border: 2px solid #ff9800; overflow: hidden; }
     .frente img { width: 100%; height: 100%; object-fit: cover; }
     .card.virada .frente, .card.certa .frente { display: block; }
 
-    #btn-voltar-jogo {
-        border: none; background: #d63031; color: white; border-radius: 5px; padding: 8px 20px; font-weight: bold;
-        position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); cursor: pointer;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
+    #btn-voltar-jogo { border: none; background: #d63031; color: white; border-radius: 5px; padding: 8px 20px; font-weight: bold; position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
     #sound-panel { position: fixed; top: 10px; right: 10px; z-index: 200; background: white; padding: 5px; border-radius: 30px; display: flex; align-items: center; border: 1px solid #ccc; }
 </style>
 </head>
 <body onclick="interacaoInicial()">
 
-    <audio id="musica-menu" loop preload="auto">
-        <source src="abertura.mp3" type="audio/mpeg">
-    </audio>
-
-    <audio id="musica-jogo" loop preload="auto">
-        <source src="flauta.mp3" type="audio/mpeg">
-    </audio>
-
+    <audio id="musica-menu" loop preload="auto"><source src="abertura.mp3" type="audio/mpeg"></audio>
+    <audio id="musica-jogo" loop preload="auto"><source src="flauta.mp3" type="audio/mpeg"></audio>
     <audio id="som-ding" src="https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3"></audio>
     <audio id="som-win" src="https://www.myinstants.com/media/sounds/victory-ff-fanfare.mp3"></audio>
 
@@ -101,7 +82,7 @@
     <div id="game-area">
         <div id="tela-menu">
             <div class="painel">
-                <div style="background:#ff9800; color:white; border-radius:10px; font-size:11px; padding:2px; margin-bottom:10px;">ANNABYTE v3.09</div>
+                <div style="background:#ff9800; color:white; border-radius:10px; font-size:11px; padding:2px; margin-bottom:10px;">ANNABYTE v3.13</div>
                 <h1>MENU</h1>
                 <input id="jogador" type="text" placeholder="Nome do Jogador">
                 <select id="tema">
@@ -114,7 +95,7 @@
                     <option value="6x5">MÉDIO (6x5)</option>
                     <option value="8x6">DIFÍCIL (8x6)</option>
                 </select>
-                <div class="botoes-container">
+                <div class="botoes-container" style="display:flex; gap:20px; justify-content:center; margin:15px 0;">
                     <button class="btn-bola btn-jogar" onclick="iniciar()">JOGAR</button>
                     <button class="btn-bola btn-sair" onclick="fecharApp()">SAIR</button>
                 </div>
@@ -124,9 +105,13 @@
 
         <div id="tela-jogo">
             <div id="tabuleiro-container">
+                <div class="header-jogo">
+                    <h2>ANNABYTE v3.13</h2>
+                    <p>JOGO DA MEMÓRIA</p>
+                </div>
                 <div id="hud-box">
                     <span id="nome-hud" style="color:#e65100; font-weight:900;">PLAYER</span>
-                    <span id="tempo" style="background:#ff9800; color:white; padding:2px 8px; border-radius:5px;">0.0s</span>
+                    <span id="tempo" style="background:#ff9800; color:white; padding:2px 8px; border-radius:5px;">⏱️ 0.0s</span>
                 </div>
                 <div id="grid"></div>
                 <button id="btn-voltar-jogo" onclick="voltarMenu()">VOLTAR</button>
@@ -137,14 +122,7 @@
 <script>
     let canalMenu = document.getElementById('musica-menu'); 
     let canalJogo = document.getElementById('musica-jogo');
-
-    let isMuted = false;
-    let interagiu = false;
-    let viradas = [];
-    let travado = false;
-    let acertos = 0;
-    let timerLoop;
-    let segundos = 0;
+    let isMuted = false, interagiu = false, viradas = [], travado = false, acertos = 0, timerLoop, segundos = 0;
 
     const DB = {
         naruto: ["https://tse2.mm.bing.net/th?q=Naruto+Chibi","https://tse2.mm.bing.net/th?q=Sasuke+Chibi","https://tse2.mm.bing.net/th?q=Sakura+Chibi","https://tse2.mm.bing.net/th?q=Kakashi+Chibi","https://tse2.mm.bing.net/th?q=Hinata+Chibi","https://tse2.mm.bing.net/th?q=Gaara+Chibi","https://tse2.mm.bing.net/th?q=Itachi+Chibi","https://tse2.mm.bing.net/th?q=Jiraiya+Chibi","https://tse2.mm.bing.net/th?q=Tsunade+Chibi","https://tse2.mm.bing.net/th?q=Obito+Chibi","https://tse2.mm.bing.net/th?q=Madara+Chibi","https://tse2.mm.bing.net/th?q=Kurama+Chibi","https://tse2.mm.bing.net/th?q=Minato+Chibi","https://tse2.mm.bing.net/th?q=RockLee+Chibi","https://tse2.mm.bing.net/th?q=Shikamaru+Chibi","https://tse2.mm.bing.net/th?q=Pain+Chibi","https://tse2.mm.bing.net/th?q=Konan+Chibi","https://tse2.mm.bing.net/th?q=Deidara+Chibi","https://tse2.mm.bing.net/th?q=Hidan+Chibi","https://tse2.mm.bing.net/th?q=Kisame+Chibi","https://tse2.mm.bing.net/th?q=Orochimaru+Chibi","https://tse2.mm.bing.net/th?q=Boruto+Chibi","https://tse2.mm.bing.net/th?q=Sarada+Chibi","https://tse2.mm.bing.net/th?q=Mitsuki+Chibi"],
@@ -161,148 +139,134 @@
     }
 
     function interacaoInicial() { 
-    if (!interagiu) { 
-        interagiu = true; 
-        if(!isMuted) {
-            // Liga o tema do Naruto imediatamente
-            canalMenu.play().catch(e => console.log("Aguardando interação"));
-            
-            // "Engatilha" a flauta em silêncio para o navegador permitir depois
-            canalJogo.play().then(() => {
-                canalJogo.pause();
-                canalJogo.currentTime = 0;
-            }).catch(e => {});
+        if (!interagiu) { 
+            interagiu = true; 
+            if(!isMuted) {
+                canalMenu.play().catch(e => {});
+                canalJogo.play().then(() => { canalJogo.pause(); canalJogo.currentTime = 0; }).catch(e => {});
+            } 
         } 
-    } 
-} 
+    }
 
     function toggleMute() { 
         isMuted = !isMuted; 
         document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊"; 
-        isMuted ? som.pause() : som.play().catch(()=>{}); 
+        isMuted ? (canalMenu.pause(), canalJogo.pause()) : (document.getElementById('tela-menu').style.display === 'none' ? canalJogo.play() : canalMenu.play());
     }
     
-    function mudarVolume() { som.volume = document.getElementById('vol-slider').value; }
+    function mudarVolume() { canalMenu.volume = document.getElementById('vol-slider').value; canalJogo.volume = document.getElementById('vol-slider').value; }
 
-    // 2. FUNÇÃO INICIAR (Quando clica no botão JOGAR)
-function iniciar() {
-    let nome = document.getElementById('jogador').value;
-    if(!nome) return alert("Digite seu nome!");
+    function iniciar() {
+        let nome = document.getElementById('jogador').value;
+        if(!nome) return alert("Digite seu nome!");
+        if(!isMuted) { canalMenu.pause(); canalJogo.currentTime = 0; canalJogo.play().catch(e => {}); }
 
-    // TROCA DE ÁUDIO FORÇADA
-    if(!isMuted) {
-        canalMenu.pause(); 
-        canalJogo.currentTime = 0;
-        // Como o arquivo é local, o play() é quase instantâneo
-        canalJogo.play().catch(e => console.log("Erro ao tocar arquivo local"));
-    }
+        let tema = document.getElementById('tema').value;
+        let nivelSel = document.getElementById('nivel').value;
+        let partes = nivelSel.split('x');
+        let linhas = parseInt(partes[0]), colunas = parseInt(partes[1]);
+        let qtdTotal = linhas * colunas, qtdPares = qtdTotal / 2;
         
-        // Espera um milésimo de segundo para o 'load' processar
-        setTimeout(() => {
-            canalJogo.play().catch(e => {console.log("Erro ao reconhecer o arquivo:", e);
-            });
-        }, 150);
-    
+        document.getElementById('nome-hud').innerText = nome.toUpperCase();
+        document.getElementById('tela-menu').style.display = 'none';
+        document.getElementById('tela-jogo').style.display = 'flex';
 
-    let tema = document.getElementById('tema').value;
-    let nivelSel = document.getElementById('nivel').value;
-    
-    let partes = nivelSel.split('x');
-    let linhas = parseInt(partes[0]);
-    let colunas = parseInt(partes[1]);
-    let qtdTotal = linhas * colunas;
-    let qtdPares = qtdTotal / 2;
-    
-    document.getElementById('nome-hud').innerText = nome.toUpperCase();
-    document.getElementById('tela-menu').style.display = 'none';
-    document.getElementById('tela-jogo').style.display = 'flex';
+        let selecionadas = DB[tema].slice(0, qtdPares);
+        let deck = fisherYates([...selecionadas, ...selecionadas]);
+        const grid = document.getElementById('grid');
+        grid.style.gridTemplateColumns = `repeat(${colunas}, 65px)`;
+        grid.innerHTML = "";
+        
+        deck.forEach((img) => {
+            let div = document.createElement('div');
+            div.className = 'card'; div.dataset.id = img;
+            div.innerHTML = `<div class="frente"><img src="${img}"></div>`;
+            div.onclick = () => clicar(div, qtdPares);
+            grid.appendChild(div);
+        });
 
-    let selecionadas = DB[tema].slice(0, qtdPares);
-    let deck = fisherYates([...selecionadas, ...selecionadas]);
-
-    const grid = document.getElementById('grid');
-    grid.style.gridTemplateColumns = `repeat(${colunas}, 65px)`;
-    grid.innerHTML = "";
-    
-    deck.forEach((img) => {
-        let div = document.createElement('div');
-        div.className = 'card';
-        div.dataset.id = img;
-        div.innerHTML = `<div class="frente"><img src="${img}"></div>`;
-        div.onclick = () => clicar(div, qtdPares);
-        grid.appendChild(div);
-    });
-
-    segundos = 0; acertos = 0; viradas = []; travado = false;
-    clearInterval(timerLoop);
-    timerLoop = setInterval(() => { 
-        segundos += 0.1; 
-        document.getElementById('tempo').innerText = segundos.toFixed(1) + 's'; 
-    }, 100);
-}
+        segundos = 0; acertos = 0; viradas = []; travado = false;
+        clearInterval(timerLoop);
+        timerLoop = setInterval(() => { segundos += 0.1; document.getElementById('tempo').innerText = '⏱️ ' + segundos.toFixed(1) + 's'; }, 100);
+    }
 
     function clicar(card, totalPares) {
         if(travado || card.classList.contains('virada') || card.classList.contains('certa')) return;
-        card.classList.add('virada');
-        viradas.push(card);
-
+        card.classList.add('virada'); viradas.push(card);
         if(viradas.length === 2) {
             travado = true;
             if(viradas[0].dataset.id === viradas[1].dataset.id) {
-                document.getElementById('som-ding').play();
+                let somDing = document.getElementById('som-ding');
+                somDing.currentTime = 0; 
+                somDing.play().catch(e=>{});
+
                 viradas.forEach(c => c.classList.add('certa'));
-                viradas = []; travado = false;
-                acertos++;
+                viradas = []; travado = false; acertos++;
                 if(acertos === totalPares) vitoria();
             } else {
+                viradas.forEach(c => c.classList.add('erro'));
                 setTimeout(() => { 
-                    viradas.forEach(c => c.classList.remove('virada')); 
+                    viradas.forEach(c => { c.classList.remove('virada'); c.classList.remove('erro'); }); 
                     viradas = []; travado = false; 
                 }, 800);
             }
         }
     }
 
-    function vitoria() {
-        clearInterval(timerLoop);
-        document.getElementById('som-win').play();
-        confetti({ particleCount: 150, spread: 70 });
-        let nome = document.getElementById('jogador').value;
-        let tempoFinal = segundos.toFixed(1);
-        salvar(nome, tempoFinal);
-        setTimeout(() => { alert(`BOA, ${nome.toUpperCase()}! Tempo: ${tempoFinal}s`); voltarMenu(); }, 500);
-    }
+function vitoria() {
+    clearInterval(timerLoop);
+    let nome = document.getElementById('jogador').value;
+    let tempoFinal = parseFloat(segundos.toFixed(1));
+    
+    let lista = JSON.parse(localStorage.getItem('anna_rank')) || [];
+    let isRecorde = lista.length === 0 || tempoFinal < lista[0].t;
 
-    // 3. FUNÇÃO VOLTAR (Quando sai do jogo para o menu)
-    function voltarMenu() {
-        clearInterval(timerLoop);
-        document.getElementById('tela-jogo').style.display = 'none';
-        document.getElementById('tela-menu').style.display = 'flex';
-        
-        if(!isMuted) {
-            canalJogo.pause(); // Para Flauta
-            canalMenu.play().catch(e => {}); // Volta Naruto
-        }
-        atualizarRank();
+    if(isRecorde) {
+        confetti({ particleCount: 250, spread: 100, origin: { y: 0.6 } });
+        document.getElementById('som-win').play().catch(e=>{});
+        setTimeout(() => { 
+            alert(`🏆 INCRÍVEL, ${nome.toUpperCase()}!\nVOCÊ BATEU O RECORDE: ${tempoFinal}s!`); 
+            voltarMenu();
+        }, 500);
+    } else {
+        confetti({ particleCount: 100, spread: 70 });
+        document.getElementById('som-win').play().catch(e=>{});
+        setTimeout(() => { 
+            alert(`BOA, ${nome.toUpperCase()}!\nTempo: ${tempoFinal}s`); 
+            voltarMenu();
+        }, 500);
     }
-    function salvar(n, t) {
-        let key = 'anna_rank';
-        let lista = JSON.parse(localStorage.getItem(key)) || [];
-        lista.push({n, t: parseFloat(t)});
-        lista.sort((a,b) => a.t - b.t);
-        localStorage.setItem(key, JSON.stringify(lista.slice(0, 5)));
-    }
+    salvar(nome, tempoFinal);
+}
 
-    function atualizarRank() {
-        let lista = JSON.parse(localStorage.getItem('anna_rank')) || [];
-        let html = lista.length ? "" : "Sem recordes.";
-        lista.forEach((r, i) => {
-            html += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:3px;">
-                        <span>${i+1}. ${r.n}</span><span>${r.t}s</span>
-                     </div>`;
-        });
-        document.getElementById('ranking-area').innerHTML = html;
+function salvar(n, t) {
+    let lista = JSON.parse(localStorage.getItem('anna_rank')) || [];
+    lista.push({n, t: parseFloat(t)});
+    lista.sort((a,b) => a.t - b.t);
+    localStorage.setItem('anna_rank', JSON.stringify(lista.slice(0, 5)));
+}
+
+function voltarMenu() {
+    clearInterval(timerLoop);
+    document.getElementById('tela-jogo').style.display = 'none';
+    document.getElementById('tela-menu').style.display = 'flex';
+    if(!isMuted) {
+        canalJogo.pause(); 
+        canalMenu.currentTime = 0;
+        canalMenu.play().catch(e => {});
     }
+    atualizarRank();
+}
+
+function atualizarRank() {
+    let lista = JSON.parse(localStorage.getItem('anna_rank')) || [];
+    let html = lista.length ? "" : "Sem recordes.";
+    lista.forEach((r, i) => { 
+        let medal = i === 0 ? "🥇 " : i === 1 ? "🥈 " : i === 2 ? "🥉 " : "";
+        html += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:3px; font-weight:bold;"><span>${medal}${i+1}. ${r.n.toUpperCase()}</span><span>${r.t}s</span></div>`; 
+    });
+    document.getElementById('ranking-area').innerHTML = html;
+}
 
     function fecharApp() { if(confirm("Sair?")) window.close(); }
     window.onload = atualizarRank;
