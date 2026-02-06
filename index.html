@@ -1,86 +1,88 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="manifest.json">
-    <title>ANNABYTE - V3.03</title>
+    <title>ANNABYTE - V3.09</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
-    <style>
-        /* Estilos originais mantidos e otimizados */
-        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; padding: 0; font-family: 'Verdana', sans-serif; height: 100vh; width: 100vw; overflow: hidden; background-color: #f0f0f0; display: flex; flex-direction: row; }
-        
-        @media (max-width: 800px) {
-            body { flex-direction: column; overflow-y: auto; }
-            #side-watermark { width: 100% !important; height: 30vh !important; -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%) !important; }
-            #game-area { width: 100% !important; height: 70vh !important; padding: 10px; }
-            .painel { width: 95% !important; padding: 15px !important; margin-top: -20px; }
-            #grid { transform: scale(0.8); margin-top: -30px; touch-action: manipulation; }
-        }
+<style>
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; padding: 0; font-family: 'Verdana', sans-serif; height: 100vh; width: 100vw; overflow: hidden; background-color: #f0f0f0; display: flex; flex-direction: row; }
+    
+    @media (max-width: 800px) {
+        body { flex-direction: column; overflow-y: auto; }
+        #side-watermark { width: 100% !important; height: 25vh !important; }
+        #game-area { width: 100% !important; height: 75vh !important; padding: 5px; }
+        /* No mobile, mantemos a largura relativa para não estourar */
+        .painel, #tabuleiro-container { width: 98% !important; min-width: auto !important; padding: 15px !important; }
+        #grid { transform: scale(0.65); transform-origin: top center; }
+    }
 
-        #side-watermark { position: relative; width: 45%; height: 100%; background-image: url('annasarah.jpeg?v=3.01'); background-size: cover; background-position: center top; filter: grayscale(100%) contrast(1.1); opacity: 0.8; -webkit-mask-image: linear-gradient(to right, black 70%, transparent 100%); z-index: 1; }
-        #game-area { width: 55%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; }
-        .painel { width: 380px; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; }
-        .versao-tag { background: #ff9800; color: white; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 12px; margin-bottom: 5px; display: inline-block; }
-        #last-update { font-size: 10px; color: #666; margin-bottom: 15px; font-weight: bold; }
-        h1 { color: #e65100; margin: 0 0 15px 0; font-size: 32px; text-transform: uppercase; font-weight: 900; }
-        input[type=text], select { width: 100%; padding: 12px; margin-bottom: 10px; border: 2px solid #ccc; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
-        .botoes-container { display: flex; gap: 20px; margin: 15px 0; justify-content: center; }
-        .btn-bola { width: 80px; height: 80px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 14px; }
-        .btn-jogar { background: #2ecc71; border: 4px solid white; box-shadow: 0 4px 0 #27ae60; }
-        .btn-sair { background: #ff7675; border: 4px solid white; box-shadow: 0 4px 0 #d63031; }
-        #ranking-area { width: 100%; height: 100px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; text-align: left; padding: 10px; margin-bottom: 10px; }
-        .ranking-item { border-bottom: 1px solid #eee; padding: 5px 0; display: flex; justify-content: space-between; font-weight: bold; font-size: 14px; }
-        
-        /* Estilos do Jogo */
-        #tela-jogo { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
-        #grid { display: grid; gap: 8px; padding: 10px; background: white; border-radius: 15px; border: 1px solid #ccc; }
-        
-        /* Cartas com visual Profissional e Moderno */
-         .card {
-                    width: 80px; height: 80px;
-                    background: linear-gradient(135deg, #ff9800, #f57c00);
-                    border-radius: 8px;
-                    cursor: pointer;
-                    position: relative;
-                    /* Sombra mais escura e visível */
-                    box-shadow: 0 8px 0 #8a3100, 0 10px 20px rgba(0,0,0,0.4); 
-                    transition: all 0.1s;
-                }
+    #side-watermark { 
+        position: relative; width: 40%; height: 100%; 
+        background-image: url('annasarah.jpeg?v=3.01'); background-size: cover; background-position: center top; 
+        filter: grayscale(100%) contrast(1.1); opacity: 0.8; 
+        -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
+        mask-image: linear-gradient(to right, black 75%, transparent 100%);
+        z-index: 1; 
+    }
+    
+    /* Centraliza a área de conteúdo */
+    #game-area { width: 60%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; }
+    
+    /* MODIFICAÇÃO: A Tela de Apresentação agora é fixa em 380px */
+    .painel { 
+        width: 380px; padding: 25px; background: white; border-radius: 20px; 
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; 
+        position: relative;
+    }
 
-        /* Quando a carta é clicada ou já está virada, ela "estaciona" mais baixo */
-        .card:active, .card.virada, .card.certa {
-                                                    box-shadow: 0 2px 0 #8a3100;
-                                                    transform: translateY(6px);
-                                                }
+    /* MODIFICAÇÃO: O Tabuleiro de Jogo cresce conforme o grid (fit-content) */
+    #tabuleiro-container { 
+        width: fit-content; min-width: 380px; padding: 25px; background: white; border-radius: 20px; 
+        box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; 
+        position: relative;
+    }
 
-        .frente { 
-            position: absolute; 
-            width: 100%; 
-            height: 100%; 
-            background: white; 
-            border-radius: 12px; 
-            display: none; 
-            border: 4px solid #ff9800; 
-            box-sizing: border-box;
-            overflow: hidden;
-        }
+    #hud-box {
+        display: flex; justify-content: space-between; align-items: center;
+        background: #fff5e6; padding: 8px 15px; border-radius: 12px;
+        margin-bottom: 15px; border: 2px solid #ffcc80;
+    }
 
-        .frente img { 
-            width: 100%; 
-            height: 100%; 
-            object-fit: cover; 
-        }
+    h1 { color: #e65100; margin: 0 0 10px 0; font-size: 28px; text-transform: uppercase; font-weight: 900; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px solid #ccc; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
+    
+    .botoes-container { display: flex; gap: 15px; margin: 10px 0; justify-content: center; }
+    .btn-bola { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); }
+    .btn-jogar { background: #2ecc71; border: 3px solid white; }
+    .btn-sair { background: #ff7675; border: 3px solid white; }
 
-        .card.virada .frente, .card.certa .frente { display: block; }
-        #sound-panel { position: fixed; top: 10px; right: 10px; z-index: 200; background: rgba(255,255,255,0.9); padding: 5px; border-radius: 30px; display: flex; align-items: center; border: 1px solid #ccc; }
-    </style>
+    #ranking-area { width: 100%; height: 120px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; text-align: left; padding: 8px; }
+    
+    #tela-jogo { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    #grid { display: grid; gap: 6px; justify-content: center; margin: 0 auto; }
+    
+    .card { width: 65px; height: 65px; background: linear-gradient(135deg, #ff9800, #f57c00); border-radius: 6px; cursor: pointer; position: relative; box-shadow: 0 4px 0 #8a3100; transition: transform 0.1s; }
+    .card:active { transform: translateY(2px); box-shadow: 0 1px 0 #8a3100; }
+    .frente { position: absolute; width: 100%; height: 100%; background: white; border-radius: 6px; display: none; border: 2px solid #ff9800; overflow: hidden; }
+    .frente img { width: 100%; height: 100%; object-fit: cover; }
+    .card.virada .frente, .card.certa .frente { display: block; }
+
+    #btn-voltar-jogo {
+        border: none; background: #d63031; color: white; border-radius: 5px; padding: 8px 20px; font-weight: bold;
+        position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); cursor: pointer;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    #sound-panel { position: fixed; top: 10px; right: 10px; z-index: 200; background: white; padding: 5px; border-radius: 30px; display: flex; align-items: center; border: 1px solid #ccc; }
+</style>
 </head>
 <body onclick="interacaoInicial()">
 
-    <audio id="musica-menu" loop><source src="https://www.myinstants.com/media/sounds/naruto-theme-song.mp3" type="audio/mpeg"></audio>
-    <audio id="musica-jogo" loop><source src="https://ia800605.us.archive.org/8/items/NarutoOST123/Naruto%20OST%202%20-%2007%20-%20Afternoon%20of%20Konoha.mp3" type="audio/mpeg"></audio>
+    <audio id="musica-principal" loop preload="auto">
+        <source src="https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Afternoon+of+Konoha&filename=24/244331-561b368c-4903-4906-8d5b-16d7730e200c.mp3" type="audio/mpeg">
+    </audio>
     <audio id="som-ding" src="https://www.myinstants.com/media/sounds/ding-sound-effect_2.mp3"></audio>
     <audio id="som-win" src="https://www.myinstants.com/media/sounds/victory-ff-fanfare.mp3"></audio>
 
@@ -94,23 +96,18 @@
     <div id="game-area">
         <div id="tela-menu">
             <div class="painel">
-                <div class="versao-tag">ANNABYTE v3.03</div>
-                <div id="last-update"></div>
+                <div style="background:#ff9800; color:white; border-radius:10px; font-size:11px; padding:2px; margin-bottom:10px;">ANNABYTE v3.09</div>
                 <h1>MENU</h1>
-                <input id="jogador" type="text" placeholder="Seu Nome">
-                <select id="tema" onchange="atualizarRank()">
+                <input id="jogador" type="text" placeholder="Nome do Jogador">
+                <select id="tema">
                     <option value="naruto">🍥 TURMA DO NARUTO</option>
-                    <option value="anime">🦊 ANIMES</option>
-                    <option value="futebol">⚽ FUTEBOL</option>
-                    <option value="carros">🏎️ CARROS</option>
-                    <option value="frutas">🍎 FRUTAS</option>
-                    <option value="bandeiras">🏳️ BANDEIRAS</option>
-                    <option value="animais">🐶 ANIMAIS</option>
+                    <option value="futebol">⚽ FLAMENGO / FUTEBOL</option>
+                    <option value="carros">🏎️ CARROS GSI</option>
                 </select>
-                <select id="nivel" onchange="atualizarRank()">
-                    <option value="8">FÁCIL (4x4)</option>
-                    <option value="10">MÉDIO (4x5)</option>
-                    <option value="12">DIFÍCIL (4x6)</option>
+                <select id="nivel">
+                    <option value="4x4">FÁCIL (4x4)</option>
+                    <option value="6x5">MÉDIO (6x5)</option>
+                    <option value="8x6">DIFÍCIL (8x6)</option>
                 </select>
                 <div class="botoes-container">
                     <button class="btn-bola btn-jogar" onclick="iniciar()">JOGAR</button>
@@ -121,34 +118,25 @@
         </div>
 
         <div id="tela-jogo">
-            <div style="width: 350px; display:flex; justify-content: space-between; margin-bottom: 10px;">
-                <span id="nome-hud" style="font-weight:bold">ANNA</span>
-                <span id="tempo" style="font-weight:bold; color:#e65100;">0.0s</span>
-                <button onclick="voltarMenu()" style="border:none; background:#d63031; color:white; border-radius:5px; padding:5px 10px;">VOLTAR</button>
+            <div id="tabuleiro-container">
+                <div id="hud-box">
+                    <span id="nome-hud" style="color:#e65100; font-weight:900;">PLAYER</span>
+                    <span id="tempo" style="background:#ff9800; color:white; padding:2px 8px; border-radius:5px;">0.0s</span>
+                </div>
+                <div id="grid"></div>
+                <button id="btn-voltar-jogo" onclick="voltarMenu()">VOLTAR</button>
             </div>
-            <div id="grid"></div>
         </div>
     </div>
 
 <script>
-    // --- LÓGICA DE INICIALIZAÇÃO ---
-    window.onload = () => {
-        atualizarRank();
-        const agora = new Date();
-        document.getElementById('last-update').innerText = `ATUALIZADO: ${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'})}`;
-    };
-
-    let canalMenu = document.getElementById('musica-menu'), canalJogo = document.getElementById('musica-jogo');
-    let isMuted = false, interagiu = false, viradas=[], travado=false, acertos=0, timerLoop, segundos=0;
+    let som = document.getElementById('musica-principal'), interagiu = false, isMuted = false;
+    let viradas = [], travado = false, acertos = 0, timerLoop, segundos = 0;
 
     const DB = {
-        naruto: ["https://tse2.mm.bing.net/th?q=Naruto+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Sasuke+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Sakura+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Kakashi+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Hinata+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Gaara+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Itachi+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Pain+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Konan+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Jiraiya+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Tsunade+Chibi+Sticker","https://tse2.mm.bing.net/th?q=Boruto+Chibi+Sticker"],
-        anime: ["https://tse2.mm.bing.net/th?q=Goku+Chibi","https://tse2.mm.bing.net/th?q=Luffy+Chibi","https://tse2.mm.bing.net/th?q=Pikachu+Chibi","https://tse2.mm.bing.net/th?q=Sailor+Moon+Chibi","https://tse2.mm.bing.net/th?q=Tanjiro+Chibi","https://tse2.mm.bing.net/th?q=Nezuko+Chibi","https://tse2.mm.bing.net/th?q=Saitama+Chibi","https://tse2.mm.bing.net/th?q=Chopper+Chibi","https://tse2.mm.bing.net/th?q=Zoro+Chibi","https://tse2.mm.bing.net/th?q=Vegeta+Chibi","https://tse2.mm.bing.net/th?q=Deku+Chibi","https://tse2.mm.bing.net/th?q=Gon+Chibi"],
-        futebol: ["https://tse2.mm.bing.net/th?q=Flamengo+Logo+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Ball+Cartoon","https://tse2.mm.bing.net/th?q=Zico+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Boots+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Goal+Cartoon","https://tse2.mm.bing.net/th?q=Referee+Cartoon","https://tse2.mm.bing.net/th?q=Red+Card+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Trophy+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Jersey+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Gloves+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Flag+Cartoon","https://tse2.mm.bing.net/th?q=Maracana+Cartoon"],
-        carros: ["https://tse2.mm.bing.net/th?q=Astra+GSI+Cartoon","https://tse2.mm.bing.net/th?q=Police+Car+Cartoon","https://tse2.mm.bing.net/th?q=Ferrari+Cartoon","https://tse2.mm.bing.net/th?q=Monster+Truck+Cartoon","https://tse2.mm.bing.net/th?q=Race+Car+Cartoon","https://tse2.mm.bing.net/th?q=Taxi+Cartoon","https://tse2.mm.bing.net/th?q=Fire+Truck+Cartoon","https://tse2.mm.bing.net/th?q=Ambulance+Cartoon","https://tse2.mm.bing.net/th?q=Jeep+Cartoon","https://tse2.mm.bing.net/th?q=Formula+1+Cartoon","https://tse2.mm.bing.net/th?q=School+Bus+Cartoon","https://tse2.mm.bing.net/th?q=Truck+Cartoon"],
-        frutas: ["https://tse2.mm.bing.net/th?q=Apple+Cartoon","https://tse2.mm.bing.net/th?q=Banana+Cartoon","https://tse2.mm.bing.net/th?q=Strawberry+Cartoon","https://tse2.mm.bing.net/th?q=Grapes+Cartoon","https://tse2.mm.bing.net/th?q=Orange+Cartoon","https://tse2.mm.bing.net/th?q=Watermelon+Cartoon","https://tse2.mm.bing.net/th?q=Pineapple+Cartoon","https://tse2.mm.bing.net/th?q=Mango+Cartoon","https://tse2.mm.bing.net/th?q=Cherry+Cartoon","https://tse2.mm.bing.net/th?q=Kiwi+Cartoon","https://tse2.mm.bing.net/th?q=Pear+Cartoon","https://tse2.mm.bing.net/th?q=Lemon+Cartoon"],
-        bandeiras: ["https://flagcdn.com/w160/br.png", "https://flagcdn.com/w160/us.png", "https://flagcdn.com/w160/jp.png", "https://flagcdn.com/w160/de.png", "https://flagcdn.com/w160/fr.png", "https://flagcdn.com/w160/it.png", "https://flagcdn.com/w160/ca.png", "https://flagcdn.com/w160/ar.png", "https://flagcdn.com/w160/kr.png", "https://flagcdn.com/w160/es.png", "https://flagcdn.com/w160/pt.png", "https://flagcdn.com/w160/mx.png"],
-        animais: ["https://tse2.mm.bing.net/th?q=Puppy+Cartoon","https://tse2.mm.bing.net/th?q=Kitten+Cartoon","https://tse2.mm.bing.net/th?q=Panda+Cartoon","https://tse2.mm.bing.net/th?q=Lion+Cartoon","https://tse2.mm.bing.net/th?q=Elephant+Cartoon","https://tse2.mm.bing.net/th?q=Fox+Cartoon","https://tse2.mm.bing.net/th?q=Monkey+Cartoon","https://tse2.mm.bing.net/th?q=Bunny+Cartoon","https://tse2.mm.bing.net/th?q=Giraffe+Cartoon","https://tse2.mm.bing.net/th?q=Penguin+Cartoon","https://tse2.mm.bing.net/th?q=Zebra+Cartoon","https://tse2.mm.bing.net/th?q=Owl+Cartoon"]
+        naruto: ["https://tse2.mm.bing.net/th?q=Naruto+Chibi","https://tse2.mm.bing.net/th?q=Sasuke+Chibi","https://tse2.mm.bing.net/th?q=Sakura+Chibi","https://tse2.mm.bing.net/th?q=Kakashi+Chibi","https://tse2.mm.bing.net/th?q=Hinata+Chibi","https://tse2.mm.bing.net/th?q=Gaara+Chibi","https://tse2.mm.bing.net/th?q=Itachi+Chibi","https://tse2.mm.bing.net/th?q=Jiraiya+Chibi","https://tse2.mm.bing.net/th?q=Tsunade+Chibi","https://tse2.mm.bing.net/th?q=Obito+Chibi","https://tse2.mm.bing.net/th?q=Madara+Chibi","https://tse2.mm.bing.net/th?q=Kurama+Chibi","https://tse2.mm.bing.net/th?q=Minato+Chibi","https://tse2.mm.bing.net/th?q=RockLee+Chibi","https://tse2.mm.bing.net/th?q=Shikamaru+Chibi","https://tse2.mm.bing.net/th?q=Pain+Chibi","https://tse2.mm.bing.net/th?q=Konan+Chibi","https://tse2.mm.bing.net/th?q=Deidara+Chibi","https://tse2.mm.bing.net/th?q=Hidan+Chibi","https://tse2.mm.bing.net/th?q=Kisame+Chibi","https://tse2.mm.bing.net/th?q=Orochimaru+Chibi","https://tse2.mm.bing.net/th?q=Boruto+Chibi","https://tse2.mm.bing.net/th?q=Sarada+Chibi","https://tse2.mm.bing.net/th?q=Mitsuki+Chibi"],
+        futebol: ["https://tse2.mm.bing.net/th?q=Flamengo+Logo","https://tse2.mm.bing.net/th?q=Zico+Cartoon","https://tse2.mm.bing.net/th?q=Gabigol+Cartoon","https://tse2.mm.bing.net/th?q=Arrascaeta+Cartoon","https://tse2.mm.bing.net/th?q=BrunoHenrique+Cartoon","https://tse2.mm.bing.net/th?q=Soccer+Ball","https://tse2.mm.bing.net/th?q=Maracana","https://tse2.mm.bing.net/th?q=Soccer+Trophy","https://tse2.mm.bing.net/th?q=Football+Boots","https://tse2.mm.bing.net/th?q=Referee","https://tse2.mm.bing.net/th?q=Goalkeeper+Gloves","https://tse2.mm.bing.net/th?q=Football+Field","https://tse2.mm.bing.net/th?q=Red+Card","https://tse2.mm.bing.net/th?q=Corner+Flag","https://tse2.mm.bing.net/th?q=Whistle","https://tse2.mm.bing.net/th?q=Soccer+Jersey","https://tse2.mm.bing.net/th?q=World+Cup+Logo","https://tse2.mm.bing.net/th?q=Stadium+Lights","https://tse2.mm.bing.net/th?q=Captains+Armband","https://tse2.mm.bing.net/th?q=Soccer+Fan+Cartoon","https://tse2.mm.bing.net/th?q=Champions+League+Ball","https://tse2.mm.bing.net/th?q=Linesman+Flag","https://tse2.mm.bing.net/th?q=Training+Cone","https://tse2.mm.bing.net/th?q=Stopwatch"],
+        carros: ["https://tse2.mm.bing.net/th?q=Astra+GSI+Red","https://tse2.mm.bing.net/th?q=Ferrari+F40+Cartoon","https://tse2.mm.bing.net/th?q=Porsche+911+Cartoon","https://tse2.mm.bing.net/th?q=Lamborghini+Cartoon","https://tse2.mm.bing.net/th?q=Camaro+Cartoon","https://tse2.mm.bing.net/th?q=Fusca+Cartoon","https://tse2.mm.bing.net/th?q=Mustang+Cartoon","https://tse2.mm.bing.net/th?q=Race+Car","https://tse2.mm.bing.net/th?q=Formula1+Car","https://tse2.mm.bing.net/th?q=Monster+Truck","https://tse2.mm.bing.net/th?q=Police+Car","https://tse2.mm.bing.net/th?q=Taxi+Cartoon","https://tse2.mm.bing.net/th?q=School+Bus+Cartoon","https://tse2.mm.bing.net/th?q=Tractor+Cartoon","https://tse2.mm.bing.net/th?q=Ambulance+Cartoon","https://tse2.mm.bing.net/th?q=Fire+Truck+Cartoon","https://tse2.mm.bing.net/th?q=Jeep+Cartoon","https://tse2.mm.bing.net/th?q=Classic+Car+Cartoon","https://tse2.mm.bing.net/th?q=Motorcycle+Cartoon","https://tse2.mm.bing.net/th?q=Steering+Wheel","https://tse2.mm.bing.net/th?q=Car+Engine+Cartoon","https://tse2.mm.bing.net/th?q=Speedometer+Cartoon","https://tse2.mm.bing.net/th?q=Fuel+Pump+Cartoon","https://tse2.mm.bing.net/th?q=Car+Key+Cartoon"]
     };
 
     function fisherYates(array) {
@@ -159,120 +147,124 @@
         return array;
     }
 
-    function interacaoInicial() { if (!interagiu) { interagiu = true; if(!isMuted) canalMenu.play().catch(e=>{}); } }
-    function toggleMute() { isMuted = !isMuted; document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊"; if (isMuted) { canalMenu.pause(); canalJogo.pause(); } else { (document.getElementById('tela-menu').style.display !== 'none' ? canalMenu : canalJogo).play().catch(e=>{}); } }
-    function mudarVolume() { canalMenu.volume = canalJogo.volume = document.getElementById('vol-slider').value; }
+    function interacaoInicial() { 
+        if (!interagiu) { 
+            interagiu = true; 
+            if(!isMuted) som.play().then(() => { som.pause(); som.currentTime = 0; }).catch(() => {});
+        } 
+    }
+
+    function toggleMute() { 
+        isMuted = !isMuted; 
+        document.getElementById('btn-mute').innerText = isMuted ? "🔇" : "🔊"; 
+        isMuted ? som.pause() : som.play().catch(()=>{}); 
+    }
+    
+    function mudarVolume() { som.volume = document.getElementById('vol-slider').value; }
 
     function iniciar() {
         let nome = document.getElementById('jogador').value;
         if(!nome) return alert("Digite seu nome!");
-        interacaoInicial();
-        let tema = document.getElementById('tema').value, qtdPares = parseInt(document.getElementById('nivel').value);
+
+        if(!isMuted) som.play().catch(() => {});
+
+        let tema = document.getElementById('tema').value;
+        let nivelSel = document.getElementById('nivel').value;
+        
+        let partes = nivelSel.split('x');
+        let linhas = parseInt(partes[0]);
+        let colunas = parseInt(partes[1]);
+        let qtdTotal = linhas * colunas;
+        let qtdPares = qtdTotal / 2;
+        
         document.getElementById('nome-hud').innerText = nome.toUpperCase();
         document.getElementById('tela-menu').style.display = 'none';
         document.getElementById('tela-jogo').style.display = 'flex';
-        if(!isMuted) { canalMenu.pause(); canalMenu.currentTime = 0; canalJogo.play().catch(e=>{}); }
 
-        let selecionadas = fisherYates([...DB[tema]]).slice(0, qtdPares);
-        let deck = [];
-        selecionadas.forEach((url, i) => { deck.push({ id: i, img: url }); deck.push({ id: i, img: url }); });
-        fisherYates(deck);
+        let selecionadas = DB[tema].slice(0, qtdPares);
+        let deck = fisherYates([...selecionadas, ...selecionadas]);
 
         const grid = document.getElementById('grid');
-        grid.style.gridTemplateColumns = `repeat(4, 80px)`; 
+        grid.style.gridTemplateColumns = `repeat(${colunas}, 65px)`;
         grid.innerHTML = "";
-        deck.forEach((item) => {
+        
+        deck.forEach((img) => {
             let div = document.createElement('div');
             div.className = 'card';
-            div.dataset.id = item.id;
-            div.innerHTML = `<div class="frente"><img src="${item.img}${item.img.includes('flagcdn') ? '' : '&w=100&h=100&c=7'}"></div>`;
+            div.dataset.id = img;
+            div.innerHTML = `<div class="frente"><img src="${img}"></div>`;
             div.onclick = () => clicar(div, qtdPares);
             grid.appendChild(div);
         });
 
         segundos = 0; acertos = 0; viradas = []; travado = false;
         clearInterval(timerLoop);
-        timerLoop = setInterval(() => { segundos += 0.1; document.getElementById('tempo').innerText = segundos.toFixed(1) + 's'; }, 100);
+        timerLoop = setInterval(() => { 
+            segundos += 0.1; 
+            document.getElementById('tempo').innerText = segundos.toFixed(1) + 's'; 
+        }, 100);
     }
 
-    function clicar(card, total) {
+    function clicar(card, totalPares) {
         if(travado || card.classList.contains('virada') || card.classList.contains('certa')) return;
         card.classList.add('virada');
         viradas.push(card);
+
         if(viradas.length === 2) {
             travado = true;
             if(viradas[0].dataset.id === viradas[1].dataset.id) {
-                if(!isMuted) { let s = document.getElementById('som-ding'); s.currentTime = 0; s.play(); }
+                document.getElementById('som-ding').play();
                 viradas.forEach(c => c.classList.add('certa'));
                 viradas = []; travado = false;
                 acertos++;
-                if(acertos === total) vitoria();
+                if(acertos === totalPares) vitoria();
             } else {
-                setTimeout(() => { viradas.forEach(c => c.classList.remove('virada')); viradas = []; travado = false; }, 800);
+                setTimeout(() => { 
+                    viradas.forEach(c => c.classList.remove('virada')); 
+                    viradas = []; travado = false; 
+                }, 800);
             }
         }
     }
 
     function vitoria() {
         clearInterval(timerLoop);
-        if(!isMuted) { let w = document.getElementById('som-win'); w.currentTime = 0; w.play(); }
-        confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
-        
+        document.getElementById('som-win').play();
+        confetti({ particleCount: 150, spread: 70 });
         let nome = document.getElementById('jogador').value;
-        let t = document.getElementById('tema');
-        let n = document.getElementById('nivel');
         let tempoFinal = segundos.toFixed(1);
-        
-        // Chave única para este tema e nível
-        let key = 'anna_' + t.options[t.selectedIndex].text.replace(/\s/g, '') + '_' + n.options[n.selectedIndex].text.replace(/\s/g, '');
-        
-        // Verifica se é um novo recorde antes de salvar
-        let lista = JSON.parse(localStorage.getItem(key)) || [];
-        let melhorTempoAnterior = lista.length > 0 ? parseFloat(lista[0].t) : 999;
-        
-        let msgRecorde = "";
-        if (parseFloat(tempoFinal) < melhorTempoAnterior) {
-            msgRecorde = `\n🏆 NOVO RECORDE GLOBAL!`;
-        } else {
-            msgRecorde = `\n(Melhor tempo atual: ${melhorTempoAnterior}s)`;
-        }
-
-        // Salva o tempo na lista (Mantendo o limite de 10)
-        salvar(key, nome, tempoFinal);
-        
-        // Mensagem dinâmica para qualquer usuário
-        setTimeout(() => { 
-            alert(`PARABÉNS ${nome.toUpperCase()}!${msgRecorde}\nSeu Tempo: ${tempoFinal}s`); 
-            voltarMenu(); 
-        }, 500);
+        salvar(nome, tempoFinal);
+        setTimeout(() => { alert(`BOA, ${nome.toUpperCase()}! Tempo: ${tempoFinal}s`); voltarMenu(); }, 500);
     }
 
     function voltarMenu() {
         clearInterval(timerLoop);
         document.getElementById('tela-jogo').style.display = 'none';
         document.getElementById('tela-menu').style.display = 'flex';
-        if(!isMuted) { canalJogo.pause(); canalMenu.play(); }
         atualizarRank();
     }
 
-    function salvar(key, n, t) {
+    function salvar(n, t) {
+        let key = 'anna_rank';
         let lista = JSON.parse(localStorage.getItem(key)) || [];
         lista.push({n, t: parseFloat(t)});
-        lista.sort((a,b)=>a.t - b.t);
-        localStorage.setItem(key, JSON.stringify(lista.slice(0,10)));
+        lista.sort((a,b) => a.t - b.t);
+        localStorage.setItem(key, JSON.stringify(lista.slice(0, 5)));
     }
 
     function atualizarRank() {
-        let t = document.getElementById('tema'), n = document.getElementById('nivel');
-        if(!t || !n) return;
-        let key = 'anna_' + t.options[t.selectedIndex].text.replace(/\s/g, '') + '_' + n.options[n.selectedIndex].text.replace(/\s/g, '');
-        let lista = JSON.parse(localStorage.getItem(key)) || [];
-        let html = lista.length === 0 ? `<div style='color:#999; text-align:center; padding:10px;'>Sem recordes ainda!</div>` : "";
-        lista.forEach((r,i) => { html += `<div class="ranking-item"><span>${i+1}. ${r.n}</span><span>${r.t}s</span></div>`; });
+        let lista = JSON.parse(localStorage.getItem('anna_rank')) || [];
+        let html = lista.length ? "" : "Sem recordes.";
+        lista.forEach((r, i) => {
+            html += `<div style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding:3px;">
+                        <span>${i+1}. ${r.n}</span><span>${r.t}s</span>
+                     </div>`;
+        });
         document.getElementById('ranking-area').innerHTML = html;
     }
 
     function fecharApp() { if(confirm("Sair?")) window.close(); }
+    window.onload = atualizarRank;
 </script> 
 </body>
 </html>
