@@ -284,5 +284,27 @@ function atualizarRank() {
     function fecharApp() { if(confirm("Sair?")) window.close(); }
     window.onload = atualizarRank;
 </script> 
+<script>
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                const telaJogo = document.getElementById('telaJogo'); // Ajuste o ID se necessário
+                const telaInicial = document.getElementById('telaInicial'); // Ajuste o ID se necessário
+
+                // 1. Se estiver no jogo, volta para o início
+                if (telaJogo && telaJogo.style.display !== 'none') {
+                    telaJogo.style.display = 'none';
+                    telaInicial.style.display = 'block';
+                    // Se tiver uma função de parar o som, coloque o nome dela aqui:
+                    // pararMusica(); 
+                } 
+                // 2. Se já estiver no início, fecha o app
+                else {
+                    window.location.href = "about:blank";
+                }
+            }
+        });
+    </script>
+</body>
+</html>
 </body>
 </html>
