@@ -18,7 +18,7 @@
     }
 
     #side-watermark { 
-        position: relative; width: 35%; height: 100%; 
+        position: relative; width: 40%; height: 100%; 
         background-image: url('annasarah.jpeg?v=3.01'); background-size: cover; background-position: center top; 
         filter: grayscale(100%) contrast(1.1); opacity: 0.8; 
         -webkit-mask-image: linear-gradient(to right, black 75%, transparent 100%);
@@ -26,49 +26,43 @@
         z-index: 1; 
     }
     
-    #game-area { flex: 1; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; padding: 10px; }
+    #game-area { width: 60%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 10; }
     
-    #tabuleiro-container { 
-        width: fit-content; min-width: 320px; max-width: 95%; 
-        padding: 15px; background: white; border-radius: 20px; 
-        box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; 
-        position: relative; display: flex; flex-direction: column; align-items: center;
-    }
+    .painel, #tabuleiro-container { width: fit-content; min-width: 320px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; position: relative; }
 
-    .header-jogo { margin-bottom: 8px; border-bottom: 2px dashed #ffcc80; padding-bottom: 5px; width: 100%; }
-    .header-jogo h2 { color: #ff9800; margin: 0; font-size: 20px; font-weight: 900; }
-    .header-jogo p { color: #e65100; margin: 0; font-size: 12px; font-weight: bold; letter-spacing: 2px; }
+    /* Cabeçalho Lúdico no Jogo */
+    .header-jogo { margin-bottom: 15px; border-bottom: 2px dashed #ffcc80; padding-bottom: 10px; }
+    .header-jogo h2 { color: #ff9800; margin: 0; font-size: 22px; font-weight: 900; }
+    .header-jogo p { color: #e65100; margin: 0; font-size: 14px; font-weight: bold; letter-spacing: 2px; }
 
-    #hud-box { display: flex; justify-content: space-between; align-items: center; background: #fff5e6; padding: 5px 15px; border-radius: 12px; margin-bottom: 10px; border: 2px solid #ffcc80; width: 100%; }
+    #hud-box { display: flex; justify-content: space-between; align-items: center; background: #fff5e6; padding: 8px 15px; border-radius: 12px; margin-bottom: 15px; border: 2px solid #ffcc80; }
 
-    #grid { 
-        display: grid; gap: 4px; justify-content: center; margin: 0 auto; 
-        overflow: hidden; /* FIM DA BARRA DE ROLAGEM */
-    }
+    h1 { color: #e65100; margin: 0 0 10px 0; font-size: 28px; text-transform: uppercase; font-weight: 900; }
+    input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px solid #ccc; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
     
-    /* TAMANHO PADRÃO (FÁCIL) */
+    .btn-bola { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
+    .btn-jogar { background: #2ecc71; border: 3px solid white; }
+    .btn-sair { background: #ff7675; border: 3px solid white; }
+    .btn-bola:active { transform: scale(0.95); }
+
+    #ranking-area { width: 100%; height: 120px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; text-align: left; padding: 8px; }
+    
+    #tela-jogo { display: none; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; }
+    #grid { display: grid; gap: 6px; justify-content: center; margin: 0 auto; }
+    
     .card { width: 65px; height: 65px; background: linear-gradient(135deg, #ff9800, #f57c00); border-radius: 6px; cursor: pointer; position: relative; box-shadow: 0 4px 0 #8a3100; transition: transform 0.1s; }
     
-    /* TAMANHO PARA MODO MÉDIO E DIFÍCIL - GARANTE QUE TUDO CABE NA TELA */
-    .modo-medio .card { width: 52px; height: 52px; }
-    .modo-dificil .card { width: 42px; height: 42px; }
+    /* Animação de Erro (Shake) */
+    @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-4px);} 75% {transform: translateX(4px);} }
+    .erro { animation: shake 0.3s; border: 3px solid #ff0000 !important; }
 
     .frente { position: absolute; width: 100%; height: 100%; background: white; border-radius: 6px; display: none; border: 2px solid #ff9800; overflow: hidden; }
     .frente img { width: 100%; height: 100%; object-fit: cover; }
     .card.virada .frente, .card.certa .frente { display: block; }
 
-    #btn-voltar-jogo { border: none; background: #d63031; color: white; border-radius: 5px; padding: 10px 25px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); margin-top: 15px; }
+    #btn-voltar-jogo { border: none; background: #d63031; color: white; border-radius: 5px; padding: 8px 20px; font-weight: bold; position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-    .painel { width: fit-content; min-width: 320px; padding: 25px; background: white; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; border: 4px solid #ff9800; position: relative; }
-    h1 { color: #e65100; margin: 0 0 10px 0; font-size: 28px; text-transform: uppercase; font-weight: 900; }
-    input, select { width: 100%; padding: 10px; margin-bottom: 8px; border: 2px solid #ccc; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; }
-    .btn-bola { width: 70px; height: 70px; border-radius: 50%; border: none; color: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; box-shadow: 0 4px 0 rgba(0,0,0,0.2); transition: 0.1s; }
-    .btn-jogar { background: #2ecc71; border: 3px solid white; }
-    .btn-sair { background: #ff7675; border: 3px solid white; }
-    #ranking-area { width: 100%; height: 120px; overflow-y: auto; background: #fafafa; border: 1px solid #eee; border-radius: 8px; text-align: left; padding: 8px; }
     #sound-panel { position: fixed; top: 10px; right: 10px; z-index: 200; background: white; padding: 5px; border-radius: 30px; display: flex; align-items: center; border: 1px solid #ccc; }
-    @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-4px);} 75% {transform: translateX(4px);} }
-    .erro { animation: shake 0.3s; border: 3px solid #ff0000 !important; }
 </style>
 </head>
 <body onclick="interacaoInicial()">
@@ -177,17 +171,10 @@
         document.getElementById('tela-menu').style.display = 'none';
         document.getElementById('tela-jogo').style.display = 'flex';
 
-        const grid = document.getElementById('grid');
-        grid.className = ""; // Limpa classes anteriores
-        
-        // APLICA CLASSE DE TAMANHO COM BASE NO NÍVEL
-        if (nivelSel === "6x5") grid.classList.add('modo-medio');
-        if (nivelSel === "8x6") grid.classList.add('modo-dificil');
-
         let selecionadas = DB[tema].slice(0, qtdPares);
         let deck = fisherYates([...selecionadas, ...selecionadas]);
-        
-        grid.style.gridTemplateColumns = `repeat(${colunas}, auto)`;
+        const grid = document.getElementById('grid');
+        grid.style.gridTemplateColumns = `repeat(${colunas}, 65px)`;
         grid.innerHTML = "";
         
         deck.forEach((img) => {
@@ -284,27 +271,5 @@ function atualizarRank() {
     function fecharApp() { if(confirm("Sair?")) window.close(); }
     window.onload = atualizarRank;
 </script> 
-<script>
-        document.addEventListener('keydown', function(event) {
-            if (event.key === "Escape") {
-                const telaJogo = document.getElementById('telaJogo'); // Ajuste o ID se necessário
-                const telaInicial = document.getElementById('telaInicial'); // Ajuste o ID se necessário
-
-                // 1. Se estiver no jogo, volta para o início
-                if (telaJogo && telaJogo.style.display !== 'none') {
-                    telaJogo.style.display = 'none';
-                    telaInicial.style.display = 'block';
-                    // Se tiver uma função de parar o som, coloque o nome dela aqui:
-                    // pararMusica(); 
-                } 
-                // 2. Se já estiver no início, fecha o app
-                else {
-                    window.location.href = "about:blank";
-                }
-            }
-        });
-    </script>
-</body>
-</html>
 </body>
 </html>
